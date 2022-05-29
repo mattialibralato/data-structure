@@ -1,2 +1,2 @@
 # data-structure
-A set of implementations of popular data structures.
+A set of implementations of popular data structures (WIP).
