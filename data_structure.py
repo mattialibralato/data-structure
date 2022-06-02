@@ -187,8 +187,10 @@ class Stack():
             self.prev = None
     
     def __init__(self):
+        """Create an empty stack."""
         self._len = 0
         self.top = None
+        
     
     def __len__(self):
         return self._len
@@ -216,3 +218,66 @@ class Stack():
         new_node.prev = self.top   # works with empty stacks too
         self.top = new_node
         self._len += 1
+
+
+class Queue():
+    """
+    A queue of data, using FIFO (first-in first-out) ordering.
+
+    Computational complexity (N = length of the queue):
+    <table>
+        <tr><td>Length                  </td><td>O(1)</td></tr>
+        <tr><td>Get the i-th item       </td><td>Not available</td></tr>
+        <tr><td>Add first               </td><td>Not available</td></tr>
+        <tr><td>Add at the end          </td><td>O(1)</td></tr>
+        <tr><td>peek = Get first        </td><td>O(1)</td></tr>
+        <tr><td>Get last                </td><td>Not available</td></tr>
+        <tr><td>Insert at the i-th index</td><td>Not available</td></tr>
+        <tr><td>Remove (first)          </td><td>O(1)</td></tr>
+        <tr><td>Remove last             </td><td>Not available</td></tr>
+        <tr><td>Set the i-th item       </td><td>Not available</td></tr>
+    </table>
+    """
+
+    class Node():
+        def __init__(self, d):
+            self.data = d
+            self.next = None
+    
+    def __init__(self):
+        """Create an empty queue."""
+        self.head = None
+        self.tail = None
+        self._len = 0
+    
+    def __len__(self):
+        return self._len
+    
+    def isempty(self):
+        """Return True if and only if the queue is empty."""
+        return self._len == 0
+    
+    def add(self, d):
+        """Add an item to the end of the queue."""
+        new_node = self.Node(d)
+        if self._len == 0:
+            self.head = new_node
+        else:
+            self.tail.next = new_node
+        self.tail = new_node
+        self._len += 1
+
+    def peek(self):
+        """Return the top of the queue."""
+        if self.isempty():
+            raise ValueError("The queue is empty")
+        return self.head.data
+    
+    def remove(self):
+        """Remove the first item of the queue."""
+        if self.isempty():
+            raise ValueError("The queue is empty")
+        if self._len == 1:
+            self.tail = None
+        self.head = self.head.next   # Works with len = 1 too.
+    
