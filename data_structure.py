@@ -1,7 +1,6 @@
-import array
+from typing import Any, Dict, List, Optional
 
-
-class LinkedList():
+class LinkedList:
     """
     A sequence of nodes one linked by the previous one.
 
@@ -19,12 +18,12 @@ class LinkedList():
     </table>
     """
 
-    class Node():
+    class Node:
         def __init__(self, d):
             self.data = d
             self.next = None
     
-    def __init__(self, collection: list):
+    def __init__(self, collection: Optional[list] = []):
         """Create a linked list from a list."""
         self._len = len(collection)
         if self._len == 0:
@@ -162,7 +161,7 @@ class LinkedList():
             node.data = d
 
 
-class Stack():
+class Stack:
     """
     A stack of data, using LIFO (last-in first-out) ordering.
 
@@ -181,7 +180,7 @@ class Stack():
     </table>
     """
 
-    class Node():
+    class Node:
         def __init__(self, d):
             self.data = d
             self.prev = None
@@ -190,7 +189,7 @@ class Stack():
         """Create an empty stack."""
         self._len = 0
         self.top = None
-        
+
     
     def __len__(self):
         return self._len
@@ -220,7 +219,7 @@ class Stack():
         self._len += 1
 
 
-class Queue():
+class Queue:
     """
     A queue of data, using FIFO (first-in first-out) ordering.
 
@@ -239,7 +238,7 @@ class Queue():
     </table>
     """
 
-    class Node():
+    class Node:
         def __init__(self, d):
             self.data = d
             self.next = None
@@ -281,3 +280,143 @@ class Queue():
             self.tail = None
         self.head = self.head.next   # Works with len = 1 too.
     
+
+class Tree:
+    """
+    A Tree is a data structure made of nodes, such that
+    - has a root node;
+    - every node has zero or more child nodes.
+    We allow the existence of and empty tree (with no nodes at all).
+    """
+    class Node:
+        def __init__(self, d):
+            self.data = d
+            self.children = []
+            self.parent = None
+        
+        def copy(self):
+            """A shallow copy ot the node keeping only the data attribute."""
+            return type(self)(self.data)
+
+        def deep_copy(self):
+            """A deep copy of the node, except for the parent, aliased with the original one."""
+            node = self._deep_copy_no_parent(self)
+            node._set_descendent_parents(self.parent)
+            return node
+        
+        def _deep_copy_no_parent(self):
+            """A deep copy of the node which however ignores the parent."""
+            Node = type(self)
+            node = Node(self.data)
+            node.children = [self._deep_copy_no_parent(child) for child in self.children]
+            return node
+        
+        def _set_descendent_parents(self, parent):
+            for child in self.children:
+                child._set_descendent_parents(self)
+            self.parent = parent
+    
+    def __init__(self, leaves_dict: dict = {}):
+        """
+        Create a Tree with the structure saved in `leaves_dict`,
+
+        Params
+        ------
+        leaves_dict: A dictionary containing all nested pair
+            key-value with key the value
+            of a node and, as value, the list of other dicts with
+            the same structure. Therefore, it should be a dictionary
+            with at most an item.
+        
+        Example
+        -------
+        >>> Tree(
+        ...     {8: [
+        ...         {4: [
+        ...             {2: []},
+        ...             {6: []}
+        ...         ]},
+        ...         {12: [
+        ...             {10: []},
+        ...             {14: []}
+        ...         ]}
+        ...     ]}
+        ... )
+        """
+        if len(leaves_dict) == 0:
+            self.root = None
+        else:
+            self.root = self._populate_node(leaves_dict, None)
+    
+    def _populate_node(self, leaves_dict: Dict[Any, List[Any]], parent: Optional[Node]):
+        [(d, children_dict)] = leaves_dict.items()
+        node = self.Node(d)
+        node.parent = parent
+        node.children = [self._populate_node(child, node) for child in children_dict]
+        return node
+
+    def deep_copy(self):
+        tree = Tree()
+        tree.root = None if self.root is None else self.root.deep_copy()
+        return tree
+
+    def __getitem__(self, indexes: List[int]):
+        """Get the value of the node from the sequence of indexes.
+        Iterating among them it navigates through
+        the descendentes. In other words, it returns
+        the value of the indexes[-1]-th child of the indexes[-2]-th child
+        of the indexes[0]-th child of the root node."""
+        if self.root is None:
+            raise ValueError("The tree is empty.")
+        node = self.root
+        for i in indexes:
+            node = node.children[i]
+        return node.data
+    
+    def get_subtree(self, indexes: List[int]):
+        """Get the subtree whose root node is determined by the sequence of indexes.
+        Iterating among them it navigates through
+        the descendentes. In other words, it returns
+        the tree whose root is the indexes[-1]-th child of the indexes[-2]-th child
+        of the indexes[0]-th child of the root node."""
+        if self.root is None:
+            raise ValueError("The tree is empty.")    
+        node = self.root
+        for i in indexes:
+            node = node.children[i]
+        tree = Tree()
+        tree.root = node.deep_copy()
+        return tree
+
+class Graph:
+    class Node:
+        def __init__(self, d):
+            self._id = -1
+            self.data = d
+            self.children = []
+    
+    def __init__(self, values: List[Any], edges: List[List[int]]):
+        """
+        Create a Graph with nodes with the corresponding values
+        linked according to the index pairs in edges.
+        """
+        self.nodes = [self.Node(value) for value in values]
+        self.edges = [[0,0] for _ in range(len(edges))]
+        for i in range(len(edges)):
+            edge = edges[i]
+            if len(edge) != 2:
+                raise ValueError("Exactly 2 indexes must be provided to define an edge.")
+            self.nodes[edge[0]].children.append(self.nodes[edge[1]])
+            self.edges[i] = edge
+        assert all(node._id == -1 for node in self.nodes)
+        for i,node in enumerate(self.nodes):
+            node._id = i
+    
+    def get_adjacency_list(self):
+        return {
+            (i, node.data): [
+                (child._id, child.data)
+                for child in node.children
+            ]
+            for i,node in enumerate(self.nodes)
+        }
